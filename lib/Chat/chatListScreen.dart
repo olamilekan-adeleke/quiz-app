@@ -41,8 +41,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Container(
-                      height: 20,
-                      width: 20,
+                      height: 18,
+                      width: 18,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.green,
