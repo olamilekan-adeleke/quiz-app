@@ -15,8 +15,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Container(
       child: ListView.builder(
+        physics: BouncingScrollPhysics(),
         padding: EdgeInsets.all(10),
-        itemCount: 2,
+        itemCount: 20,
         itemBuilder: (context, index) {
           return CustomTile(
             mini: false,
@@ -38,8 +39,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     backgroundImage: NetworkImage(
                         'https://images.pexels.com/photos/556667/pexels-photo-556667.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
                   ),
-                  Align(
-                    alignment: Alignment.bottomLeft,
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
                     child: Container(
                       height: 18,
                       width: 18,

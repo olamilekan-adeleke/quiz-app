@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:my_app_2_2/Chat/chatScreen.dart';
 import 'package:my_app_2_2/Models/UserDetailsModel.dart';
 import 'package:my_app_2_2/Post/PostWidgets.dart';
 import 'package:my_app_2_2/services/FirestoreDatabase.dart';
@@ -94,6 +95,11 @@ class _OtherUsersProfilePageState extends State<OtherUsersProfilePage> {
             ),
             onPressed: () {
               print(widget.user.fullName);
+              // onTap of message, navigate to chat screen with this user
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) => ChatScreen(
+                        receiver: widget.user,
+                      )));
             },
           ),
         ],

@@ -73,6 +73,7 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  // Navigate to search user profile
   void navigateToProfilePage({@required UserDataModel searchUser}) {
     if (searchUser.uid == currentUserUid) {
       print('this is logged in user!');
