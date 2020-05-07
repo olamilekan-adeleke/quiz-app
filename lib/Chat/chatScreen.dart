@@ -318,6 +318,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.black,
         builder: (context) {
           return Column(
+            //
             children: <Widget>[
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15),
