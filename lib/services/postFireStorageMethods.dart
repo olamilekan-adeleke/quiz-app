@@ -3,14 +3,16 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class StorageDatabaseService {
-  final StorageReference storageReference =
+  final StorageReference postStorageReference =
       FirebaseStorage.instance.ref().child('PostsPictures');
 
   Future<String> uploadImageToFirebaseStorage(
       {File imageFile, String postId, String uid}) async {
+    /// upload post image to storage and return url. required[File imageFile, String postId, String uid]
+
     print('started uploading');
     StorageUploadTask storageUploadTask =
-        storageReference.child(uid).child('post_$postId').putFile(imageFile);
+    postStorageReference.child(uid).child('post_$postId').putFile(imageFile);
 
     StorageTaskSnapshot storageTaskSnapshot =
         await storageUploadTask.onComplete;

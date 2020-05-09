@@ -7,7 +7,7 @@ class Setting extends StatefulWidget {
 
 class _SettingState extends State<Setting> {
   final String title = 'Setting';
-  String _value = null;
+  String _value;
   List<String> _values = List<String>();
   var selectedTheme;
   var themes;
@@ -16,6 +16,7 @@ class _SettingState extends State<Setting> {
   void initState() {
     _values.addAll(['Red Theme', 'Green Theme', 'Dark Themes']);
     _value = _values.elementAt(0);
+    super.initState();
   }
 
   void _onChanged(String value) {

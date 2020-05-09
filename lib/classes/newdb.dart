@@ -211,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
         dbmanager.insertStudent(st).then((id) => {
               _nameController.clear(),
               _courseController.clear(),
-              print('Student Added to Db ${id}')
+              print('Student Added to Db $id')
             });
       } else {
         student.name = _nameController.text;

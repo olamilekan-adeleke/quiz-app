@@ -1,10 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:my_app_2_2/Chat/chatHomePage.dart';
 import 'package:my_app_2_2/Post/UploadNewPost.dart';
 import 'package:my_app_2_2/Profile/ProfilePage.dart';
 import 'package:my_app_2_2/QuizSection/QuizHomePage.dart';
+import 'package:my_app_2_2/enum/userState.dart';
+import 'package:my_app_2_2/provider/userProvider.dart';
 import 'package:my_app_2_2/searchPageFolder/searchPage.dart';
 import 'package:my_app_2_2/services/Auth.dart';
 
@@ -13,38 +16,87 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final AuthService auth = AuthService();
-  Color homeColorOnSelect;
-  Color searchColorOnSelect;
-  Color chatColorOnSelect;
-  Color infoColorOnSelect;
 
   Widget widgetToDisplay;
+  UserProvider userProvider;
 
   PageController pageController;
   int getPageIndex = 0;
+  String currentUserUid;
 
   @override
   void initState() {
+    getUid();
     pageController = PageController();
-    setState(() {
-      widgetToDisplay = QuizHomPage();
-      homeColorOnSelect = Colors.teal;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      String currentUserUid = await getUid();
+      print(currentUserUid);
+//      userProvider = Provider.of<UserProvider>(context, listen: false);
+//      await UserProvider().getUser;
+
+      auth.setUserState(
+        userUid:
+            currentUserUid, //'nrQG6SPgCKXQ5yMeqQRiMBv4SIg1', //userProvider.getUser,
+        userState: UserState.Online,
+      );
     });
+
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     pageController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    String currentUserUid = await getUid();
+//        (userProvider != null && userProvider.getUser != null
+//            ? userProvider.getUser
+//            : '');
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        currentUserUid != null
+            ? auth.setUserState(
+                userUid: currentUserUid, userState: UserState.Online)
+            : print("resume state");
+        break;
+      case AppLifecycleState.inactive:
+        currentUserUid != null
+            ? auth.setUserState(
+                userUid: currentUserUid, userState: UserState.Offline)
+            : print("inactive state");
+        break;
+      case AppLifecycleState.paused:
+        currentUserUid != null
+            ? auth.setUserState(
+                userUid: currentUserUid, userState: UserState.Waiting)
+            : print("paused state");
+        break;
+      case AppLifecycleState.detached:
+        currentUserUid != null
+            ? auth.setUserState(
+                userUid: currentUserUid, userState: UserState.Offline)
+            : print("detached state");
+        break;
+    }
   }
 
   Future<String> getUid() async {
     final FirebaseUser currentUser = await auth.getCurrentUser();
     final uid = currentUser.uid;
-    print('uid: $uid');
+    setState(() {
+      currentUserUid = uid;
+    });
     return uid;
   }
 
@@ -98,69 +150,5 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return homeMainScreen();
-//    return Scaffold(
-//      body: Container(
-//        child: display(),
-//      ),
-//      bottomNavigationBar: BottomAppBar(
-//        child: Container(
-//          child: Row(
-//            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//            children: <Widget>[
-//              IconButton(
-//                icon: Icon(Icons.home),
-//                onPressed: () {
-//                  setState(() {
-//                    widgetToDisplay = QuizHomPage();
-//                    homeColorOnSelect = Colors.teal;
-//                  });
-//                },
-//                color: homeColorOnSelect,
-//              ),
-//              IconButton(
-//                icon: Icon(Icons.search),
-//                onPressed: () {
-//                  setState(() {
-//                    widgetToDisplay = SearchPage();
-//                    searchColorOnSelect = Colors.teal;
-//                  });
-//                },
-//                color: searchColorOnSelect,
-//              ),
-//              IconButton(
-//                icon: Icon(Icons.image),
-//                onPressed: () {
-//                  setState(() {
-//                    widgetToDisplay = PostsPage();
-//                    searchColorOnSelect = Colors.teal;
-//                  });
-//                },
-//                color: searchColorOnSelect,
-//              ),
-//              IconButton(
-//                icon: Icon(Icons.chat),
-//                onPressed: () {
-////                setState(() {
-////                  widgetToDisplay = HomePage();
-////                  homeColorOnSelect = Colors.teal;
-////                });
-//                },
-//                color: chatColorOnSelect,
-//              ),
-//              IconButton(
-//                icon: Icon(Icons.person),
-//                onPressed: () {
-//                  setState(() {
-//                    widgetToDisplay = OwnerProfilePage();
-//                    infoColorOnSelect = Colors.teal;
-//                  });
-//                },
-//                color: infoColorOnSelect,
-//              ),
-//            ],
-//          ),
-//        ),
-//      ),
-//    );
   }
 }

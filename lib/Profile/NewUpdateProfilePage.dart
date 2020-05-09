@@ -33,7 +33,7 @@ class _NewUpdateProfileState extends State<NewUpdateProfile> {
 
   @override
   void initState() {
-    print('img: ${imageSelected}');
+    print('img: $imageSelected');
     super.initState();
   }
 

@@ -257,32 +257,34 @@ class _OtherUsersProfilePageState extends State<OtherUsersProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ListView(
-        children: <Widget>[
-          widget.user.uid == null
-              ? Container(
-                  child: Center(
-                    child: Text('Loading....'),
-                  ),
-                )
-              : createProfileTopView(),
-          Divider(
-            thickness: 2,
-            color: Colors.black,
-          ),
-          displayPost(),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            height: 100,
+    return SafeArea(
+      child: Scaffold(
+        body: ListView(
+          children: <Widget>[
+            widget.user.uid == null
+                ? Container(
+                    child: Center(
+                      child: Text('Loading....'),
+                    ),
+                  )
+                : createProfileTopView(),
+            Divider(
+              thickness: 2,
+              color: Colors.black,
+            ),
+            displayPost(),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              height: 100,
 //            width: 70,
 //            child: Center(
 //              child: CircularProgressIndicator(
 //                backgroundColor: Colors.grey,
 //              ),
 //            ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

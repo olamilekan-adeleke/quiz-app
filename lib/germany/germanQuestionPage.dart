@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_app_2_2/germany/germanResultPage.dart';
 
+// ignore: must_be_immutable
 class GermanQuestionPage extends StatelessWidget {
   var questionNumber;
   var questionLength;
@@ -58,6 +60,7 @@ class GermanQuestionPage extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class GermanPage extends StatefulWidget {
   final myData;
   var questionNumber;
@@ -155,9 +158,9 @@ class _GermanPageState extends State<GermanPage> {
 
   void checkTimerColor({double initial, double currentTime}) {
     double _time = initial;
-    double _80precentTime = (_time - (80 / 100) * _time).toDouble();
+    double timeAtEightyPercent = (_time - (80 / 100) * _time).toDouble();
 
-    if (currentTime == _80precentTime) {
+    if (currentTime == timeAtEightyPercent) {
       timeColor = Colors.red[600];
     } else {
       timeColor = timeColor;

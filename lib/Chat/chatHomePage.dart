@@ -1,22 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:my_app_2_2/Chat/chatListScreen.dart';
-import 'package:provider/provider.dart';
+import 'package:my_app_2_2/Chat/chatWidgets/newChatButton.dart';
 
-class ChatHomePage extends StatefulWidget {
-  @override
-  _ChatHomePageState createState() => _ChatHomePageState();
-}
-
-class _ChatHomePageState extends State<ChatHomePage> {
-  String currentUserUid;
-
+class ChatHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of(context);
-    setState(() {
-      currentUserUid = user.uid;
-    });
-
+//    final user = Provider.of(context);
     return Scaffold(
       appBar: AppBar(
         leading: null,
@@ -45,7 +34,8 @@ class _ChatHomePageState extends State<ChatHomePage> {
           ),
         ],
       ),
-      body: ChatListScreen(currentUserUid: currentUserUid),
+      body: ChatListScreen(),
+      floatingActionButton: NewChatButton(),
     );
   }
 }

@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:my_app_2_2/Chat/chatUtils.dart';
 import 'package:my_app_2_2/Chat/chatWidgets/ModalTile.dart';
+import 'package:my_app_2_2/Chat/chatWidgets/cachedChatImage.dart';
 import 'package:my_app_2_2/Models/UserDetailsModel.dart';
 import 'package:my_app_2_2/Models/messageModel.dart';
+import 'package:my_app_2_2/enum/viewState.dart';
+import 'package:my_app_2_2/provider/imageUploadProvider.dart';
 import 'package:my_app_2_2/services/chatsMethods.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   TextEditingController textEditingController = TextEditingController();
   String senderUid;
   String currentUserUid;
+  ImageUploadProvider imageUploadProvider;
 
   static final Color senderColor = Color(0xff2b343b);
   static final Color receiverColor = Color(0xff1e2225);
@@ -45,24 +54,46 @@ class _ChatScreenState extends State<ChatScreen> {
       message: text,
       timestamp: Timestamp.now(),
       type: 'text',
+      sent: false,
+      read: false,
     );
 
     setState(() {
       isWriting = false;
     });
+    textEditingController.text = '';
 
     // add message to Db
     try {
-      ChatMethods()
-          .addMessageToDb(message: message)
-          .timeout(Duration(seconds: 30));
+      ChatMethods().addMessageToDb(message: message).then((_) {
+        ChatMethods().updateIsSent(message: message);
+      });
+//          .timeout(Duration(seconds: 30));
     } catch (e) {
       Fluttertoast.showToast(msg: e.message);
     }
   }
 
+  void getImageSelected({@required ImageSource source}) async {
+    /// get/await image selected from device, required[image source]
+
+    File selectedImage = await ChatUtils.pickImage(source: source);
+    if (selectedImage != null) {
+      ChatMethods().uploadImage(
+        image: selectedImage,
+        receiverUid: widget.receiver.uid,
+        senderUId: currentUserUid,
+        imageUploadProvider: imageUploadProvider,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // set image upload provider
+    imageUploadProvider = Provider.of(context);
+
+    // get user uid for user provider
     final user = Provider.of(context);
     setState(() {
       senderUid = user.uid;
@@ -77,6 +108,9 @@ class _ChatScreenState extends State<ChatScreen> {
           Flexible(
             child: messageList(),
           ),
+          imageUploadProvider.getViewState == ViewState.LOADING
+              ? isSendingImage()
+              : Container(),
           chatControlInputs(),
         ],
       ),
@@ -105,6 +139,31 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget isSendingImage() {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: EdgeInsets.all(5),
+      child: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            CircularProgressIndicator(),
+            SizedBox(height: 5),
+            Text(
+              'Sending Image, Please Wait',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w400,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget messageList() {
     return StreamBuilder(
       stream: ChatMethods().chatStream(
@@ -115,9 +174,12 @@ class _ChatScreenState extends State<ChatScreen> {
         } else {
           print('${snapshot.data.documents.length} len');
           return ListView.builder(
+            reverse: true,
             padding: EdgeInsets.all(10),
             itemCount: snapshot.data.documents.length,
             itemBuilder: (context, index) {
+//              print(index.toString());
+//              print(index.toString() + 'is read: ' + Message.fromMap(snapshot.data.documents[index].data).read.toString());
               return chatMessageItem(snapshot.data.documents[index]);
             },
           );
@@ -129,6 +191,15 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget chatMessageItem(DocumentSnapshot snapshot) {
     Message message = Message.fromMap(snapshot.data);
 
+    //
+    if (message.senderUid != currentUserUid) {
+      if (message.read == false) {
+        ChatMethods().updateIsRead(message: message);
+      }
+    }
+
+    //
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 3),
       child: Container(
@@ -136,8 +207,24 @@ class _ChatScreenState extends State<ChatScreen> {
             ? Alignment.centerRight
             : Alignment.centerLeft,
         child: message.senderUid == currentUserUid
-            ? senderMessageLayout(message)
-            : receiverMessageLayout(message), //senderMessageLayout(),
+            ? Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    senderMessageLayout(message),
+                    getTimeFormat(timestamp: message.timestamp),
+                  ],
+                ),
+              )
+            : Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    receiverMessageLayout(message),
+                    getTimeFormat(timestamp: message.timestamp),
+                  ],
+                ),
+              ), //senderMessageLayout(),
       ),
     );
   }
@@ -163,8 +250,13 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
-                getMessage(message: message),
-                getTimeFormat(timestamp: message.timestamp),
+                Container(
+                  padding: EdgeInsets.only(top: 0, left: 10, right: 5),
+                  child: getMessage(message: message),
+                ),
+                Container(
+                  child: getIconIndicator(message: message),
+                ),
               ],
             ),
           ),
@@ -193,8 +285,11 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                getMessage(message: message),
-                getTimeFormat(timestamp: message.timestamp),
+                Container(
+                  padding:
+                      EdgeInsets.only(top: 0, left: 5, right: 10, bottom: 3),
+                  child: getMessage(message: message),
+                ),
               ],
             ),
           ),
@@ -203,31 +298,63 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  getMessage({@required Message message}) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(5, 5, 5, 2),
-      child: Text(
-        message.message,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 17.0,
+  Widget getMessage({@required Message message}) {
+    if (message.type == 'text') {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(5, 5, 5, 2),
+        child: Text(
+          message.message,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 17.0,
+          ),
         ),
-      ),
-    );
+      );
+    } else if (message.type == 'image') {
+      return CachedChatImage(imageUrl: message.photoUrl);
+    }
   }
 
-  getTimeFormat({@required Timestamp timestamp}) {
+  Widget getTimeFormat({@required Timestamp timestamp}) {
     return Padding(
-      padding: EdgeInsets.only(left: 5, right: 5, bottom: 1),
+      padding: EdgeInsets.only(bottom: 1, top: 2),
       child: Text(
 //        DateFormat("MMM d, EEE HH:mm").format(timestamp.toDate()),
         DateFormat("MMM d, HH:mm").format(timestamp.toDate()),
         style: TextStyle(
           fontWeight: FontWeight.w300,
-          color: Colors.white,
+//          color: Colors.white,
         ),
       ),
     );
+  }
+
+  Widget getIconIndicator({@required Message message}) {
+    Widget iconToShow;
+    if (message.sent == true) {
+      iconToShow = Icon(
+        Icons.check,
+        color: Colors.grey[600],
+        size: 20,
+        semanticLabel: 'Message has been Sent!',
+      );
+    }
+    if (message.read == true) {
+      iconToShow = Icon(
+        Icons.check,
+        size: 20,
+        color: Colors.blue,
+        semanticLabel: 'Message has been read',
+      );
+    } else if (message.sent == false && message.read == false) {
+      iconToShow = Icon(
+        Icons.access_time,
+        size: 18,
+        color: Colors.grey[600],
+        semanticLabel: 'Message Was Not Sent!',
+      );
+    }
+    return iconToShow;
   }
 
   Widget chatControlInputs() {
@@ -253,25 +380,34 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
         Expanded(
-          child: TextField(
-            controller: textEditingController,
-            style: TextStyle(
-              color: Colors.white,
-            ),
-            onChanged: (val) {
-              (val.length > 0 && val.trim() != '')
-                  ? setWritingTo(true)
-                  : setWritingTo(false);
-            },
-            decoration: InputDecoration(
-              hintText: 'Type a Message...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                borderSide: BorderSide.none,
+          child: LimitedBox(
+            maxHeight: 100,
+            child: SingleChildScrollView(
+              child: TextField(
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: null,
+                controller: textEditingController,
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+                onChanged: (val) {
+                  (val.length > 0 && val.trim() != '')
+                      ? setWritingTo(true)
+                      : setWritingTo(false);
+                },
+                decoration: InputDecoration(
+                  hintText: 'Type a Message...',
+                  hintStyle: TextStyle(color: Colors.white, fontSize: 18),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(50.0)),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  filled: true,
+                  fillColor: Colors.teal[300],
+                ),
               ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-              filled: true,
-              fillColor: Colors.teal[300],
             ),
           ),
         ),
@@ -283,8 +419,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   gradient: fabGradient,
                   shape: BoxShape.circle,
                 ),
-                child:
-                    IconButton(icon: Icon(Icons.camera_alt), onPressed: () {}),
+                child: IconButton(
+                  icon: Icon(Icons.camera_alt),
+                  onPressed: () {
+                    getImageSelected(source: ImageSource.camera);
+                  },
+                ),
               ),
         isWriting
             ? Container(
@@ -350,19 +490,28 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: ListView(
                   children: <Widget>[
                     ModalTile(
-                      onTap: () => print('go to camera'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        getImageSelected(source: ImageSource.camera);
+                      },
                       title: "Camera",
                       subtitle: "Share Photos From Device Camera",
                       icon: Icons.photo_camera,
                     ),
                     ModalTile(
-                      onTap: () => print('go to gallery'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        getImageSelected(source: ImageSource.gallery);
+                      },
                       title: "Media",
                       subtitle: "Share Photos From Gallery",
                       icon: Icons.image,
                     ),
                     ModalTile(
-                      onTap: () => print('go to file'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        print('go to file');
+                      },
                       title: "File",
                       subtitle: "Share files",
                       icon: Icons.tab,

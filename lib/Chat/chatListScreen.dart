@@ -1,63 +1,44 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:my_app_2_2/Chat/chatWidgets/ChatCustomTile.dart';
+import 'package:my_app_2_2/Chat/chatWidgets/chatContactView.dart';
+import 'package:my_app_2_2/Chat/chatWidgets/chatQuietBox.dart';
+import 'package:my_app_2_2/Models/contactModel.dart';
+import 'package:my_app_2_2/services/chatsMethods.dart';
+import 'package:provider/provider.dart';
 
-class ChatListScreen extends StatefulWidget {
-  final currentUserUid;
+class ChatListScreen extends StatelessWidget {
+  final ChatMethods chatMethods = ChatMethods();
 
-  ChatListScreen({@required this.currentUserUid});
-
-  @override
-  _ChatListScreenState createState() => _ChatListScreenState();
-}
-
-class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of(context);
     return Container(
-      child: ListView.builder(
-        physics: BouncingScrollPhysics(),
-        padding: EdgeInsets.all(10),
-        itemCount: 20,
-        itemBuilder: (context, index) {
-          return CustomTile(
-            mini: false,
-            onTap: () {},
-            title: Text(
-              'Ola Mi',
-              style: TextStyle(fontSize: 19),
-            ),
-            subtitle: Text(
-              'Hello',
-              style: TextStyle(fontSize: 14),
-            ),
-            leading: Container(
-              child: Stack(
-                children: <Widget>[
-                  CircleAvatar(
-                    maxRadius: 30,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: NetworkImage(
-                        'https://images.pexels.com/photos/556667/pexels-photo-556667.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      height: 18,
-                      width: 18,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.green,
-                        border: Border.all(color: Colors.black, width: 2),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+      child: StreamBuilder<QuerySnapshot>(
+          stream: chatMethods.fetchContacts(userUid: user.uid),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              var docLis = snapshot.data.documents;
+
+              if (docLis.isEmpty) {
+                return ChatQuietBox();
+              } else {
+                return ListView.builder(
+                  physics: BouncingScrollPhysics(),
+                  padding: EdgeInsets.all(10),
+                  itemCount: docLis.length,
+                  itemBuilder: (context, index) {
+                    ContactModel contact =
+                        ContactModel.fromMap(docLis[index].data);
+                    return ChatContactView(contact: contact);
+                  },
+                );
+              }
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }),
     );
   }
 }

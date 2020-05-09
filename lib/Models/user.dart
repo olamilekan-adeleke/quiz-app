@@ -1,5 +1,10 @@
 class User {
-  final String uid;
+  String uid;
 
   User({this.uid});
+
+  User.fromMap(Map<dynamic, dynamic> mapData) {
+    this.uid = mapData['uid'];
+  }
+
 }

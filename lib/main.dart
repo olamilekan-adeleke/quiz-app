@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:my_app_2_2/provider/imageUploadProvider.dart';
 import 'package:my_app_2_2/services/Auth.dart';
 import 'package:my_app_2_2/services/Mapping.dart';
 import 'package:provider/provider.dart';
@@ -9,8 +10,13 @@ void main() => runApp(QuizApp());
 class QuizApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return StreamProvider.value(
-      value: AuthService().user,
+    return MultiProvider(
+      providers: [
+        StreamProvider.value(value: AuthService().user),
+        ChangeNotifierProvider<ImageUploadProvider>(
+          create: (context) => ImageUploadProvider(),
+        ),
+      ],
       child: MaterialApp(
         theme: ThemeData(
           primarySwatch: Colors.teal,

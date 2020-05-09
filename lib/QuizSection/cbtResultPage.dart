@@ -5,9 +5,9 @@ import 'package:my_app_2_2/QuizSection/reviewCbtQuestion.dart';
 
 class CbtResultPage extends StatefulWidget {
   final int marks;
-  List wrongQuestion;
-  List wrongOptions;
-  List correctOptions;
+  final List wrongQuestion;
+  final List wrongOptions;
+  final List correctOptions;
 
   CbtResultPage({
     Key key,

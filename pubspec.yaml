@@ -50,6 +50,9 @@ dependencies:
   flutter_image: ^3.0.0
   flutter_advanced_networkimage: ^0.7.0
   image_cropper:
+  flutter_image_compress: ^0.6.7
+  timeago:
+
   #  flutter_advanced_networkimage:
 
 

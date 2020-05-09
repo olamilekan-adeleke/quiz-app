@@ -4,10 +4,10 @@ import 'package:my_app_2_2/germany/germanPerviewQuestionsPage.dart';
 
 class GermanResultPage extends StatefulWidget {
   final int marks;
-  List wrongQuestion;
-  List wrongQuestionNumber;
-  List wrongAnswer;
-  List correctOptions;
+  final List wrongQuestion;
+  final List wrongQuestionNumber;
+  final List wrongAnswer;
+  final List correctOptions;
 
   GermanResultPage({
     Key key,

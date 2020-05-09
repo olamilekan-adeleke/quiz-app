@@ -1,16 +1,48 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:my_app_2_2/Chat/chatUtils.dart';
+import 'package:my_app_2_2/Models/UserDetailsModel.dart';
 import 'package:my_app_2_2/Models/user.dart';
+import 'package:my_app_2_2/enum/userState.dart';
 import 'package:my_app_2_2/services/FirestoreDatabase.dart';
 
 class AuthService {
   final FirebaseAuth auth = FirebaseAuth.instance;
+  final CollectionReference publicUserCollection =
+      Firestore.instance.collection('publicUserData');
 
   // get current user
   Future<FirebaseUser> getCurrentUser() async {
     FirebaseUser currentUser;
     currentUser = await auth.currentUser();
     return currentUser;
+  }
+
+  // get use
+  Future<User> getUserDetails() async {
+    FirebaseUser currentUser = await getCurrentUser();
+
+    DocumentSnapshot documentSnapshot =
+        await publicUserCollection.document(currentUser.uid).get();
+
+    return User.fromMap(documentSnapshot.data);
+  }
+
+  Future<UserDataModel> getLoggedInUserDetails() async {
+    try {
+      FirebaseUser currentUser = await getCurrentUser();
+
+      DocumentSnapshot documentSnapshot =
+      await publicUserCollection.document(currentUser.uid).get();
+
+      return UserDataModel.fromMap(documentSnapshot.data);
+    }catch(e){
+      print(e.toString());
+      Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
+      return null;
+    }
   }
 
   // get uid of logged in user
@@ -106,4 +138,29 @@ class AuthService {
       return null;
     }
   }
+
+  Future<UserDataModel> getUserDetailByUid({String uid}) async {
+    try {
+      DocumentSnapshot documentSnapshot =
+          await publicUserCollection.document(uid).get();
+      return UserDataModel.fromDocument(documentSnapshot);
+    } catch (e) {
+      Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
+      print(e.toString());
+    }
+  }
+
+  void setUserState({@required String userUid, @required UserState userState}) {
+    int stateToNumber = ChatUtils.stateToNumber(userState: userState);
+
+    publicUserCollection.document(userUid).updateData({
+      'state': stateToNumber,
+      'lastSeen': Timestamp.now(),
+    });
+  }
+
+  Stream<DocumentSnapshot> getUserStream({@required String uid}) =>
+      publicUserCollection.document(uid).snapshots();
+
+  //
 }

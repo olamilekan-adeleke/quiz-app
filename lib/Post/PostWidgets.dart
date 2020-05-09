@@ -1,16 +1,13 @@
-import 'dart:async';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_advanced_networkimage/provider.dart';
-import 'package:flutter_advanced_networkimage/transition.dart';
-import 'package:flutter_image/network.dart';
 import 'package:my_app_2_2/Models/UserDetailsModel.dart';
+import 'package:my_app_2_2/Post/commentpage.dart';
 import 'package:my_app_2_2/services/FirestoreDatabase.dart';
-//import 'fl';
+import 'package:my_app_2_2/services/feedMethods.dart';
+import 'package:my_app_2_2/services/postMethods.dart';
 
 class PostWidgets extends StatefulWidget {
   final String postId;
@@ -81,7 +78,7 @@ class _PostWidgetsState extends State<PostWidgets> {
   final String imageUrl;
   int likeCount;
   bool isLiked;
-  bool showHeart = false;
+  bool showHeart;
   String currentUserId;
 
   _PostWidgetsState({
@@ -98,7 +95,18 @@ class _PostWidgetsState extends State<PostWidgets> {
   @override
   void initState() {
     getCurrentUser();
+//    isPostLikedByCurrentOnLineUser();
     super.initState();
+  }
+
+  void isPostLikedByCurrentOnLineUser() {
+    if (likes[currentUserId] == true) {
+      setState(() {
+        showHeart = true;
+      });
+    } else {
+      showHeart = false;
+    }
   }
 
   void getCurrentUser() async {
@@ -184,125 +192,17 @@ class _PostWidgetsState extends State<PostWidgets> {
     );
   }
 
-  Widget buil() {
-    return Container(
-      child: TransitionToImage(
-        image: AdvancedNetworkImage(
-          imageUrl,
-          disableMemoryCache: true,
-          loadedCallback: () {
-            print('It works!');
-          },
-          loadFailedCallback: () {
-            print('Oh, no!');
-          },
-          loadingProgress: (double progress, List lis) {
-            print('Now Loading: $progress');
-//            CircularProgressIndicator(
-//              value: progress,
-//            );
-          },
-        ),
-        loadingWidgetBuilder: (_, double progress, __) =>
-            Text(progress.toString()),
-        fit: BoxFit.contain,
-        placeholder: const Icon(Icons.refresh),
-        width: 400.0,
-        height: 300.0,
-        enableRefresh: true,
-      ),
-    );
-  }
-
-//  Widget testPic() {
-//    return MeetNetworkImage(
-//      imageUrl: imageUrl,
-//      loadingBuilder: (loadingBuilder) {
-//        return Center(
-//          child: CircularProgressIndicator(
-//            value: loa,
-//          ),
-//        );
-//      },
-//      errorBuilder: (context, e) => Center(
-//        child: Text('Error appear!'),
-//      ),
-//    );
-//  }
-
-  Widget testPic3() {
-    return Image(
-      image: new NetworkImageWithRetry(imageUrl),
-    );
-  }
-
-  Widget testPic2() {
+  Widget postBody2() {
     return ExtendedImage.network(
       imageUrl,
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * .65,
       fit: BoxFit.fill,
       cache: false,
-
 //      border: Border.all(color: Colors.red, width: 1.0),
 //      shape: boxShape,
 //      borderRadius: BorderRadius.all(Radius.circular(30.0)),
       //cancelToken: cancellationToken,
-    );
-  }
-
-  Widget postImage() {
-    return Container(
-      height: MediaQuery.of(context).size.height * .65,
-      width: MediaQuery.of(context).size.width,
-      child: CachedNetworkImage(
-//        cacheManager: DefaultCacheManager,
-        imageUrl: imageUrl,
-        imageBuilder: (context, imageProvider) => Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
-              fit: BoxFit.fill,
-            ),
-          ),
-        ),
-//        placeholder: (context, url) => CircularProgressIndicator(),
-        errorWidget: (context, url, error) => Icon(Icons.error),
-        progressIndicatorBuilder: (context, url, downloadProgress) {
-          print(downloadProgress.progress.toString() +
-              ' / ' +
-              downloadProgress.totalSize.toString());
-          return Container(
-            child: Center(
-              child:
-                  CircularProgressIndicator(value: downloadProgress.progress),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget postPic() {
-    return Container(
-      height: MediaQuery.of(context).size.height * .65,
-//      width: MediaQuery.of(context).size.width,
-      child: CachedNetworkImage(
-//        cacheManager: Base,
-        imageUrl: imageUrl,
-        progressIndicatorBuilder: (context, url, downloadProgress) {
-          print(downloadProgress.progress.toString() +
-              ' / ' +
-              downloadProgress.totalSize.toString());
-          return Container(
-            child: Center(
-              child:
-                  CircularProgressIndicator(value: downloadProgress.progress),
-            ),
-          );
-        },
-        errorWidget: (context, url, error) => Icon(Icons.error),
-      ),
     );
   }
 
@@ -312,25 +212,46 @@ class _PostWidgetsState extends State<PostWidgets> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(left: 20),
-              child: IconButton(
-                icon: Icon(Icons.favorite_border),
-                onPressed: () => print('liked'),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 20, top: 5),
+                child: Container(
+                  child: FlatButton(
+                    onPressed: () {
+                      likePostFunction();
+                    },
+                    child: showHeart == true || likes[currentUserId] == true
+                        ? Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                          )
+                        : Icon(
+                            Icons.favorite_border,
+                            color: Colors.grey,
+                          ),
+                  ),
+                ),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(left: 20),
-              child: IconButton(
-                icon: Icon(
-                  Icons.chat_bubble_outline,
-                  size: 28.0,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 0, top: 5),
+                child: Container(
+                  child: FlatButton(
+                    onPressed: () {
+                      displayComment(context,
+                          postUid: postId,
+                          ownerUid: ownerId,
+                          imageUrl: imageUrl);
+                    },
+                    child: Icon(Icons.chat_bubble_outline),
+                  ),
                 ),
-                onPressed: () => print('navigate to comment page'),
               ),
             ),
           ],
         ),
+        Divider(),
         Row(
           children: <Widget>[
             Container(
@@ -373,14 +294,6 @@ class _PostWidgetsState extends State<PostWidgets> {
     );
   }
 
-  Widget wholePostBody() {
-    return Container(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -389,72 +302,80 @@ class _PostWidgetsState extends State<PostWidgets> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           postHeader(),
-          testPic2(),
+          postBody2(),
           postFooter(),
           Divider(),
         ],
       ),
     );
   }
-}
 
-class PostPicBody extends StatelessWidget {
-  final String url;
+  void addLike() {
+    bool isNotPostOwner = currentUserId != ownerId;
 
-  PostPicBody({this.url});
-
-  Future<bool> cacheImage(String url, BuildContext context) async {
-    bool hasError = true;
-    var output = Completer<bool>();
-    precacheImage(
-      NetworkImage(url),
-      context,
-      onError: (e, stackTrace) => hasError = false,
-    ).then((_) => output.complete(hasError));
-    return output.future;
+    if (isNotPostOwner) {
+      FeedMethods().addLikeToFeeds(
+        ownUid: ownerId,
+        postUid: postId,
+        currentOnlineUserUid: currentUserId,
+        imageUrl: imageUrl,
+      );
+      print('added');
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: cacheImage(url, context),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.none ||
-            snapshot.hasError) {
-          return Container(
-            height: MediaQuery.of(context).size.height * .65,
-            child: CircularProgressIndicator(),
-          );
-        }
-//        if (snapshot.hasData == false) {
-//          return Container(
-//            height: MediaQuery.of(context).size.height * .65,
-//            decoration: BoxDecoration(color: Colors.grey),
-//            child: Text('Error'),
-//          );
-//        }
-        else {
-          return Container(
-            height: MediaQuery.of(context).size.height * .65,
-            width: MediaQuery.of(context).size.width,
-            child: GestureDetector(
-              onTap: () => print('url: $url'),
-              child: Image.network(url, fit: BoxFit.fill,
-                  loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                    child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes
-                      : null,
-                ));
-              }),
-            ),
-          );
-        }
-      },
+  void removeLike() {
+    bool isNotPostOwner = currentUserId != ownerId;
+    if (isNotPostOwner) {
+      FeedMethods().removeLikeFromFeeds(ownUid: ownerId, postUid: postId);
+    }
+  }
+
+  void likePostFunction() {
+    bool liked = likes[currentUserId] == true;
+
+    if (liked == true) {
+      setState(() {
+        likeCount = likeCount - 1;
+        isLiked = false;
+        likes[currentUserId] = false;
+        showHeart = false;
+      });
+
+      // remove like
+      PostMethods().decrementLikeCount(
+          ownerUid: ownerId, postUid: postId, currentUserUid: currentUserId);
+
+      removeLike();
+    } else if (!liked) {
+      setState(() {
+        likeCount = likeCount + 1;
+        isLiked = true;
+        likes[currentUserId] = true;
+        showHeart = true;
+      });
+
+      PostMethods().incrementLikeCount(
+          ownerUid: ownerId, postUid: postId, currentUserUid: currentUserId);
+
+      addLike();
+      print('got here?');
+    }
+  }
+
+  displayComment(BuildContext context,
+      {@required String postUid,
+      @required String ownerUid,
+      @required String imageUrl}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CommentPage(
+          imageUrl: imageUrl,
+          ownerUid: ownerUid,
+          postUid: postUid,
+        ),
+      ),
     );
   }
+
 }

@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:my_app_2_2/QuizSection/cbtResultPage.dart';
 
+// ignore: must_be_immutable
 class GetCbtJson extends StatelessWidget {
-  var questionNumber;
-  var questionLength;
-  var randomArray;
+  final int questionNumber;
+  final int questionLength;
+  final List randomArray;
   final int number;
   final mins;
   final int sec;
@@ -81,9 +82,9 @@ class GetCbtJson extends StatelessWidget {
 }
 
 class CbtQuizPage extends StatefulWidget {
-  var questionNumber;
-  var questionLength;
-  var randomArray;
+  final int questionNumber;
+  final int questionLength;
+  final List randomArray;
   final mydata;
   final int number;
   final int mins;
@@ -176,9 +177,9 @@ class _CbtQuizPageState extends State<CbtQuizPage> {
 
   void checkTimerColor({double initial, double currentTime}) {
     double _time = initial;
-    double _70precentTime = (_time - (70 / 100) * _time).toDouble();
+    double timeAtEightyPercent = (_time - (80 / 100) * _time).toDouble();
 
-    if (currentTime == _70precentTime) {
+    if (currentTime == timeAtEightyPercent) {
       timeColor = Colors.red[600];
     } else {
       timeColor = timeColor;

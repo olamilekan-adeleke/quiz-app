@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
 class PreviewQuestionsPage extends StatefulWidget {
-  List wrongQuestion;
-  List wrongQuestionNumber;
-  List wrongAnswer;
-  List correctOptions;
+  final List wrongQuestion;
+  final List wrongQuestionNumber;
+  final List wrongAnswer;
+  final List correctOptions;
 
   PreviewQuestionsPage(
       {Key key,
-      @required this.wrongQuestion,
+        @required this.wrongQuestion,
         this.wrongQuestionNumber,
-      this.wrongAnswer,
-      this.correctOptions,
+        this.wrongAnswer,
+        this.correctOptions,
       })
       : super(key: key);
 
   @override
   _PreviewQuestionsPageState createState() => _PreviewQuestionsPageState(
-        wrongQuestion,
-        wrongQuestionNumber,
-        wrongAnswer,
-        correctOptions,
-      );
+    wrongQuestion,
+    wrongQuestionNumber,
+    wrongAnswer,
+    correctOptions,
+  );
 }
 
 class _PreviewQuestionsPageState extends State<PreviewQuestionsPage> {

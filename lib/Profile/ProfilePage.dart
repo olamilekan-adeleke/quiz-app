@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:my_app_2_2/Post/PostWidgets.dart';
 import 'package:my_app_2_2/Profile/EditUserNamePage.dart';
 import 'package:my_app_2_2/Profile/NewUpdateProfilePage.dart';
+//import 'package:my_app_2_2/Profile/NewUpdateProfilePage/services/Auth.dart';
 import 'package:my_app_2_2/services/FirestoreDatabase.dart';
 
 class OwnerProfilePage extends StatefulWidget {
@@ -46,6 +47,10 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
         }
       });
       print('two');
+//      await AuthService().getLoggedInUserDetails().then((user) {
+//        print('name: ${user.userName}');
+//      });
+//      print('end');
       getAllPostForProfile();
     } catch (e) {
       print(e.message);
