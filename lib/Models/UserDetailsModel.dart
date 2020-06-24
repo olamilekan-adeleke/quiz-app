@@ -8,6 +8,7 @@ class UserDataModel {
   String displayPicUrl;
   String status;
   int state;
+  int postCount;
 
   UserDataModel(
       {this.uid,
@@ -16,7 +17,9 @@ class UserDataModel {
       this.email,
       this.displayPicUrl,
       this.state,
-      this.status});
+      this.status,
+        this.postCount,
+      });
 
   UserDataModel.fromMap(Map<dynamic, dynamic> mapData) {
     this.uid = mapData['uid'];
@@ -26,6 +29,7 @@ class UserDataModel {
     this.displayPicUrl = mapData['displayPicUrl'];
     this.state = mapData['state'];
     this.status = mapData['status'];
+    this.postCount = mapData['postCount'];
   }
 
   factory UserDataModel.fromDocument(DocumentSnapshot doc) {
@@ -35,6 +39,7 @@ class UserDataModel {
       userName: doc['userName'],
       email: doc['email'],
       displayPicUrl: doc['displayPicUrl'],
+      postCount: doc['postCount'],
     );
   }
 }

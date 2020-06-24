@@ -6,5 +6,4 @@ class User {
   User.fromMap(Map<dynamic, dynamic> mapData) {
     this.uid = mapData['uid'];
   }
-
 }

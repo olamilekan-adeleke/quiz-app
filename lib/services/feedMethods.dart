@@ -7,15 +7,16 @@ import 'package:my_app_2_2/services/Auth.dart';
 class FeedMethods {
   final CollectionReference activityFeedCollectionRef =
       Firestore.instance.collection('feed');
+  String feedItemSubCollectionName = 'feedItems';
 
-  void removeLikeFromFeeds(
-      {@required String ownUid, @required String postUid}) {
+  Future<void> removeLikeFromFeeds(
+      {@required String ownUid, @required String postUid}) async {
     /// delete from feeds
 
     try {
-      activityFeedCollectionRef
+      await activityFeedCollectionRef
           .document(ownUid)
-          .collection('feedsItems')
+          .collection(feedItemSubCollectionName)
           .document(postUid)
           .get()
           .then((doc) {
@@ -29,7 +30,7 @@ class FeedMethods {
     }
   }
 
-  void addLikeToFeeds({
+  Future<void> addLikeToFeeds({
     @required String ownUid,
     @required String postUid,
     @required String currentOnlineUserUid,
@@ -40,9 +41,9 @@ class FeedMethods {
     try {
       UserDataModel user = await AuthService().getLoggedInUserDetails();
 
-      activityFeedCollectionRef
+      await activityFeedCollectionRef
           .document(ownUid)
-          .collection('feedsItems')
+          .collection(feedItemSubCollectionName)
           .document(postUid)
           .setData({
         'type': 'like',
@@ -64,28 +65,72 @@ class FeedMethods {
     @required Timestamp timestamp,
     @required String postUid,
     @required String postImageUrl,
+    @required String comment,
   }) async {
-
     try {
       UserDataModel user = await AuthService().getLoggedInUserDetails();
 
-      activityFeedCollectionRef.document(ownerUid).collection('feedItems').add({
+      activityFeedCollectionRef
+          .document(ownerUid)
+          .collection(feedItemSubCollectionName)
+          .add({
         'type': 'comment',
-        'commentDate': timestamp,
-        'postUid': postUid,
+        'userName': user.userName,
         'userUid': user.uid,
-        'userName': user.uid,
+        'commentData': comment,
+        'imageUrl': postImageUrl,
+        'postUid': postUid,
         'userPhotoUrl': user.displayPicUrl,
-        'imageUrl': postImageUrl
+        'timestamp': timestamp,
       });
-    }catch(e){
+    } catch (e) {
       print(e);
       Fluttertoast.showToast(msg: e.message);
     }
   }
 
+  Future<void> addFeedItem(
+      {@required String searchUserUid,
+      @required String currentLoggedInUserUid,
+      @required Timestamp timestamp}) async {
+    try {
+      UserDataModel currentUser = await AuthService().getLoggedInUserDetails();
 
+      //
+      activityFeedCollectionRef
+          .document(searchUserUid)
+          .collection(feedItemSubCollectionName)
+          .document(currentLoggedInUserUid)
+          .setData({
+        'type': 'follow',
+        'timestamp': timestamp,
+        'ownerUid': searchUserUid,
+        'followerUserName': currentUser.userName,
+        'followerPhotoUrl': currentUser.displayPicUrl,
+        'followerUid': currentUser.uid,
+      });
+      print('done follow');
+    } catch (e) {
+      print(e);
+      Fluttertoast.showToast(msg: e.messgae);
+    }
+  }
 
+  void deleteFeedItem(
+      {@required String searchUserUid,
+      @required String currentLoggedInUserUid}) {
+    activityFeedCollectionRef
+        .document(searchUserUid)
+        .collection(feedItemSubCollectionName)
+        .document(currentLoggedInUserUid)
+        .get()
+        .then((document) {
+      if (document.exists) {
+        document.reference.delete();
+        print('done unfollow');
+      }
+    });
+  }
 
-  //
+//
 }

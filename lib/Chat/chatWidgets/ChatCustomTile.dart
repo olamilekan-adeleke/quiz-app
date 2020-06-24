@@ -15,7 +15,7 @@ class CustomTile extends StatelessWidget {
     @required this.leading,
     @required this.title,
     this.icon,
-    @required this.subtitle,
+    this.subtitle,
     this.trailing,
     this.margin = const EdgeInsets.all(0),
     this.onTap,

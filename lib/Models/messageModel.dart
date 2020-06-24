@@ -6,7 +6,7 @@ class Message {
   String type;
   String message;
   Timestamp timestamp;
-  String photoUrl;
+  List photoUrl;
   bool sent;
   bool read;
 

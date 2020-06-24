@@ -13,8 +13,11 @@ class DatabaseService {
   final CollectionReference publicUserCollection =
       Firestore.instance.collection('publicUserData');
 
-  final CollectionReference postCollection =
-      Firestore.instance.collection('posts');
+//  final CollectionReference postCollection =
+//      Firestore.instance.collection('posts');
+
+  final CollectionReference exploreCollection =
+      Firestore.instance.collection('explore');
 
   Future updateUserData(
       {String fullName, String email, String userName}) async {
@@ -122,28 +125,82 @@ class DatabaseService {
   }
 
   // save post info to fire store
-  Future savePostInfoToFireStore(
+//  Future savePostInfoToFireStore(
+//      {String imageUrl,
+//      String description,
+//      String userName,
+//      String ownerUid,
+//      String postId}) async {
+//    print('saving');
+//    postCollection
+//        .document(ownerUid)
+//        .collection('userPost')
+//        .document(postId)
+//        .setData({
+//      'postId': postId,
+//      'ownerId': ownerUid,
+//      'timeCreated': Timestamp.now(),
+//      'likes': {},
+//      'userName': userName,
+//      'description': description,
+//      'imageUrl': imageUrl,
+//    });
+//    print('done');
+//  }
+
+  Future savePostToDb(
       {String imageUrl,
       String description,
       String userName,
       String ownerUid,
       String postId}) async {
-    print('saving');
-    postCollection
-        .document(ownerUid)
-        .collection('userPost')
-        .document(postId)
-        .setData({
-      'postId': postId,
-      'ownerId': ownerUid,
-      'timeCreated': Timestamp.now(),
-      'likes': {},
-      'userName': userName,
-      'description': description,
-      'imageUrl': imageUrl,
-    });
-    print('done');
+    var db = Firestore.instance;
+    WriteBatch batch = db.batch();
+
+    DocumentReference userDetailsCollectionRef =
+        publicUserCollection.document(ownerUid);
+
+//    DocumentReference userPostCollectionRef = postCollection
+//        .document(ownerUid)
+//        .collection('userPost')
+//        .document(postId);
+
+    DocumentReference explorePostCollectionRef = exploreCollection
+        .document('posts')
+        .collection('allPosts')
+        .document(postId);
+
+//    batch.setData(
+//      userPostCollectionRef,
+//      {
+//        'postId': postId,
+//        'timeCreated': Timestamp.now(),
+//      },
+//    );
+
+    batch.updateData(
+      userDetailsCollectionRef,
+      {
+        'postCount': FieldValue.increment(1),
+      },
+    );
+
+    batch.setData(
+      explorePostCollectionRef,
+      {
+        'postId': postId,
+        'ownerId': ownerUid,
+        'timeCreated': Timestamp.now(),
+        'likes': {},
+        'userName': userName,
+        'description': description,
+        'imageUrl': imageUrl,
+        'commentCount': 0,
+      },
+    );
+
+    batch.commit();
   }
 
-  //
+//
 }

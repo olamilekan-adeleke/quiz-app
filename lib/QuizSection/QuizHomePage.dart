@@ -7,6 +7,8 @@ import 'package:my_app_2_2/download/DownloadPage.dart';
 import 'package:my_app_2_2/loginAndRegisteration/loginPage.dart';
 import 'package:my_app_2_2/services/Auth.dart';
 
+//const String testDevice = 'Mobile_id';
+
 class QuizHomPage extends StatefulWidget {
   @override
   _QuizHomPageState createState() => _QuizHomPageState();
@@ -17,6 +19,27 @@ class _QuizHomPageState extends State<QuizHomPage> {
 
   final String name = 'Olamilekan Yusuf';
   final String email = 'Olamilekanly66@gmail.com';
+
+//  final AdMobMethods adMobMethod = AdMobMethods();
+
+//  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+//    testDevices: testDevice != null ? <String>[testDevice] : null,
+//    nonPersonalizedAds: true,
+//    keywords: <String>['Game',],
+//  );
+
+//  BannerAd bannerAd;
+//
+//  BannerAd createBannerAd() {
+//    return BannerAd(
+//      adUnitId: BannerAd.testAdUnitId,
+//      size: AdSize.banner,
+//      targetingInfo: targetingInfo,
+//      listener: (MobileAdEvent event) {
+//        print('bannerAd: $event');
+//      },
+//    );
+//  }
 
   Widget startQuizButton() {
     return Padding(
@@ -49,14 +72,20 @@ class _QuizHomPageState extends State<QuizHomPage> {
   Widget homePageBody() {
     return Column(
       children: <Widget>[
-        Expanded(
-          child: Container(
-            child: Center(
-//                child: Image.asset('assets/welcome_image.png'),
-//              child: Image(image: Image('assets/welcome_image.png')),
-                ),
-          ),
+        SizedBox(
+          height: 20,
         ),
+//        Container(
+//          decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+//          child: AdmobBanner(
+//            adUnitId: adMobMethod.getBannerAdId(),
+//            adSize: AdmobBannerSize.FULL_BANNER,
+//            listener: (AdmobAdEvent event, Map<String, dynamic> map) {
+//              print('ads says:  $event');
+//              print('ads says:  $map');
+//            },
+//          ),
+//        ),
         Expanded(
           flex: 8,
           child: Container(
@@ -85,6 +114,17 @@ class _QuizHomPageState extends State<QuizHomPage> {
   void logOut() async {
     await auth.signOut();
     print('sign out');
+  }
+
+  @override
+  void initState() {
+//    Admob.initialize(adMobMethod.getAdMobAppId());
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -133,8 +173,8 @@ class _QuizHomPageState extends State<QuizHomPage> {
                 ),
                 onDetailsPressed: () {
                   Navigator.pop(context);
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => OwnerProfilePage()));
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => OwnerProfilePage()));
                 },
               ),
               ListTile(
@@ -189,8 +229,8 @@ class _QuizHomPageState extends State<QuizHomPage> {
                 trailing: Icon(Icons.info),
                 onTap: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (context) => About()));
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ExploreTestPage()));
                 },
               ),
               Divider(),

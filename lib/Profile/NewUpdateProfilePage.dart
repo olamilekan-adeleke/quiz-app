@@ -127,13 +127,13 @@ class _UpLoaderState extends State<UpLoader> {
 
       await DatabaseService(uid: uid)
           .updateUserDisplayPic(imageUrl: imageUrl)
-          .then((_) {
+          .then((_) async {
         print(1);
-      });
-      await DatabaseService(uid: uid)
-          .updateUserPublicDisplayPic(imageUrl: imageUrl)
-          .then((_) {
-        print(2);
+        await DatabaseService(uid: uid)
+            .updateUserPublicDisplayPic(imageUrl: imageUrl)
+            .then((_) {
+          print(2);
+        });
       });
       Navigator.of(context).pop();
       Fluttertoast.showToast(

@@ -28,7 +28,8 @@ class ChatMethods {
           .collection(message.receiverUid)
           .document(message.timestamp.microsecondsSinceEpoch.toString())
           .setData(messageMap);
-//          .add(messageMap);
+
+      print('write made to db for message sent in sender db');
 
       // add message to receiver database collection
       await chatCollectionRef
@@ -36,15 +37,16 @@ class ChatMethods {
           .collection(message.senderUid)
           .document(message.timestamp.microsecondsSinceEpoch.toString())
           .setData(messageMap);
-//          .add(messageMap);
+
+      print('write made to db for message sent in sender db');
 
       await addToContacts(
         senderUid: message.senderUid,
         receiverUid: message.receiverUid,
       );
     } catch (e) {
-      print(e.message);
-      Fluttertoast.showToast(msg: e.message);
+      print(e);
+      Fluttertoast.showToast(msg: e.toString());
     }
   }
 
@@ -62,7 +64,7 @@ class ChatMethods {
 
   Future<String> uploadImageToStorage(
       {@required File image, String receiverUid, String senderUId}) async {
-    /// upload image to storage and get/return url. required[File image]
+    /// upload image to storage and return url. required[File image]
 
 //    File imageToUpload = await ChatUtils.compressImage(imageToCompress: image);
 
@@ -87,7 +89,7 @@ class ChatMethods {
     }
   }
 
-  void uploadImage(
+  Future<void> uploadImage(
       {@required File image,
       @required String receiverUid,
       @required String senderUId,
@@ -111,7 +113,7 @@ class ChatMethods {
           senderUid: senderUId,
           timestamp: Timestamp.now(),
           type: 'image',
-          photoUrl: imageUrl,
+          photoUrl: [imageUrl],
           sent: false,
           read: false,
         );
@@ -134,6 +136,9 @@ class ChatMethods {
 
         await addToContacts(
             senderUid: message.senderUid, receiverUid: message.receiverUid);
+
+        // write is sent to database
+        await updateIsSent(message: message);
       }
     } catch (e) {
       print(e.message);
@@ -141,13 +146,14 @@ class ChatMethods {
     }
   }
 
-  DocumentReference getContactsDocument({String of, String forContact}) =>
+  DocumentReference getContactsDocument({String of, String forContact}) {
+    /// get contact ref of the sender
 
-      /// get contact ref of the sender
-      contactsCollectionRef
-          .document(of)
-          .collection('contacts')
-          .document(forContact);
+    return contactsCollectionRef
+        .document(of)
+        .collection('contacts')
+        .document(forContact);
+  }
 
   Future<void> addToSenderContact(
       String senderUid, String receiverUid, currentTime) async {
@@ -166,6 +172,8 @@ class ChatMethods {
       var receiverMap = receiverContact.toMap(receiverContact);
       getContactsDocument(of: senderUid, forContact: receiverUid)
           .setData(receiverMap);
+
+      print('write made to db for new contact');
     } else if (senderSnapshot.exists) {
 //      ContactModel receiverContact = ContactModel(
 //        lastMessageTimestamp: currentTime,
@@ -175,6 +183,7 @@ class ChatMethods {
       getContactsDocument(of: senderUid, forContact: receiverUid).updateData({
         'lastMessageTimestamp': currentTime,
       });
+      print('write made to db for message sent in sender db');
     }
   }
 
@@ -226,12 +235,16 @@ class ChatMethods {
       .snapshots();
 
   Stream<QuerySnapshot> fetchLastMessageBetweenTwoUsers(
-          {@required String senderUid, @required String receiverUid}) =>
-      chatCollectionRef
-          .document(senderUid)
-          .collection(receiverUid)
-          .orderBy('timestamp')
-          .snapshots();
+      {@required String senderUid, @required String receiverUid}) {
+    return chatCollectionRef
+        .document(senderUid)
+        .collection(receiverUid)
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .snapshots();
+
+//    print('read made to db to get the last mesage btw users chats');
+  }
 
   Future<void> updateIsSent({@required Message message}) async {
     await chatCollectionRef

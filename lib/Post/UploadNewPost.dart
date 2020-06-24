@@ -65,6 +65,9 @@ class _UploadNewPostPageState extends State<UploadNewPostPage> {
   Future<String> uploadImageToFirebaseStorage(
       {File imageFile, String postId, String uid}) async {
     print('started uploading');
+
+    Navigator.of(context).pop();
+
     StorageUploadTask storageUploadTask =
         storageReference.child(uid).child('post_$postId').putFile(imageFile);
     storageUploadTask.events.listen((event) {
@@ -116,7 +119,7 @@ class _UploadNewPostPageState extends State<UploadNewPostPage> {
   void uploadImageAndSave() async {
     if (validateAndSave() == true) {
       setState(() {
-        isUploading = true;
+//        isUploading = true;
       });
       print('validate');
       try {
@@ -126,14 +129,15 @@ class _UploadNewPostPageState extends State<UploadNewPostPage> {
 //                  imageFile: file, postId: postId, uid: currentUserUid);
           var uploadedImageUrl = await uploadImageToFirebaseStorage(
               imageFile: file, postId: postId, uid: currentUserUid);
-          DatabaseService().savePostInfoToFireStore(
+
+          DatabaseService().savePostToDb(
             imageUrl: uploadedImageUrl,
             userName: currentUserName,
             ownerUid: currentUserUid,
             postId: postId,
             description: description,
           );
-          Navigator.of(context).pop();
+
           Fluttertoast.showToast(msg: 'Done');
         } else {
           Fluttertoast.showToast(
@@ -141,9 +145,11 @@ class _UploadNewPostPageState extends State<UploadNewPostPage> {
               toastLength: Toast.LENGTH_LONG);
         }
       } catch (e) {
-        setState(() {
-          isUploading = false;
-        });
+        if (mounted) {
+          setState(() {
+            isUploading = false;
+          });
+        }
         Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
         Navigator.of(context).pop();
       }

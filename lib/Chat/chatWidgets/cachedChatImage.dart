@@ -16,7 +16,7 @@ class _CachedChatImageState extends State<CachedChatImage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(4, 4, 4, 2),
+      padding: EdgeInsets.only(top: 4),
       child: ClipRRect(
         borderRadius: BorderRadius.only(
           topLeft: messageRadius,

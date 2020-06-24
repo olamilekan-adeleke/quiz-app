@@ -1,18 +1,35 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
+import 'package:my_app_2_2/Models/user.dart';
+import 'package:my_app_2_2/bloc/blocs/sendingImageBlocDelegate.dart';
 import 'package:my_app_2_2/provider/imageUploadProvider.dart';
 import 'package:my_app_2_2/services/Auth.dart';
 import 'package:my_app_2_2/services/Mapping.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
-void main() => runApp(QuizApp());
+void main() async {
+  // to run bloc delegate
+  BlocSupervisor.delegate = SendingImageBlocDelegate();
+
+  // init hive
+  WidgetsFlutterBinding.ensureInitialized();
+  InitHive().startHive(boxName: 'chatCheck');
+
+  //run app
+  runApp(QuizApp());
+}
 
 class QuizApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        StreamProvider.value(value: AuthService().user),
+        StreamProvider<User>.value(value: AuthService().user),
         ChangeNotifierProvider<ImageUploadProvider>(
           create: (context) => ImageUploadProvider(),
         ),
@@ -41,5 +58,13 @@ class QuizApp extends StatelessWidget {
 //      },
       ),
     );
+  }
+}
+
+class InitHive {
+  void startHive({@required String boxName}) async {
+    Directory documentDir = await getApplicationSupportDirectory();
+    Hive.init(documentDir.path);
+    await Hive.openBox<String>(boxName);
   }
 }

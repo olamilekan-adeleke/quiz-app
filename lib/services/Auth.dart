@@ -7,6 +7,8 @@ import 'package:my_app_2_2/Models/UserDetailsModel.dart';
 import 'package:my_app_2_2/Models/user.dart';
 import 'package:my_app_2_2/enum/userState.dart';
 import 'package:my_app_2_2/services/FirestoreDatabase.dart';
+import 'package:my_app_2_2/services/profileMethods.dart';
+//import 'firebase_m';
 
 class AuthService {
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -35,10 +37,12 @@ class AuthService {
       FirebaseUser currentUser = await getCurrentUser();
 
       DocumentSnapshot documentSnapshot =
-      await publicUserCollection.document(currentUser.uid).get();
+          await publicUserCollection.document(currentUser.uid).get();
+
+      print('read made to db to get details of crruenly login users');
 
       return UserDataModel.fromMap(documentSnapshot.data);
-    }catch(e){
+    } catch (e) {
       print(e.toString());
       Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
       return null;
@@ -66,7 +70,7 @@ class AuthService {
   }
 
   // auth change user stream
-  Stream get user {
+  Stream<User> get user {
     return auth.onAuthStateChanged.map(userFromFirebase);
   }
 
@@ -81,6 +85,8 @@ class AuthService {
       return null;
     }
   }
+
+//  Future configureRealTimePushNotification({@required String userUid}) {}
 
   // sign in with email an pass
   Future loginWithEmailAndPassword({String email, String password}) async {
@@ -119,6 +125,8 @@ class AuthService {
         fullName: fullName,
         userName: userName,
       );
+
+      await ProfileMethods().followYourSelfAfterRegistration(userUid: user.uid);
 
       return userFromFirebase(user);
     } catch (e) {

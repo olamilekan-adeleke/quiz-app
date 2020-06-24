@@ -24,7 +24,7 @@ dependencies:
   flutter_spinkit: ^4.1.1
   http: ^0.12.0
   intl: ^0.15.8
-  provider: ^3.1.0
+  provider: ^4.0.1
 #  undraw: ^1.0.2
   numberpicker:
   shared_preferences:
@@ -51,7 +51,18 @@ dependencies:
   flutter_advanced_networkimage: ^0.7.0
   image_cropper:
   flutter_image_compress: ^0.6.7
+  font_awesome_flutter:
   timeago:
+  hive:
+  hive_flutter: ^0.3.0+2
+  carousel_pro: ^1.0.0
+  multi_image_picker: ^4.6.7
+  flutter_bloc: ^4.0.1
+  firebase_admob: ^0.9.3+2
+  admob_flutter: ^0.3.4
+
+#  firebase_messaging:
+
 
   #  flutter_advanced_networkimage:
 

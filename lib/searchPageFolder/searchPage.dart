@@ -83,10 +83,13 @@ class _SearchPageState extends State<SearchPage> {
     } else {
       print('this is not logged in user!');
       Fluttertoast.showToast(msg: 'this is not logged in user!');
-      Navigator.of(context).push(MaterialPageRoute(
+      Navigator.of(context).push(
+        MaterialPageRoute(
           builder: (BuildContext context) => OtherUsersProfilePage(
-                user: searchUser,
-              )));
+            user: searchUser,
+          ),
+        ),
+      );
     }
   }
 

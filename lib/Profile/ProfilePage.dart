@@ -2,18 +2,19 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:my_app_2_2/Models/user.dart';
 import 'package:my_app_2_2/Post/PostWidgets.dart';
 import 'package:my_app_2_2/Profile/EditUserNamePage.dart';
 import 'package:my_app_2_2/Profile/NewUpdateProfilePage.dart';
-//import 'package:my_app_2_2/Profile/NewUpdateProfilePage/services/Auth.dart';
 import 'package:my_app_2_2/services/FirestoreDatabase.dart';
+import 'package:my_app_2_2/services/profileMethods.dart';
+import 'package:provider/provider.dart';
 
 class OwnerProfilePage extends StatefulWidget {
   @override
@@ -29,34 +30,59 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
   int countPost = 0;
   List<PostWidgets> postList = [];
   bool isLoadingPic = false;
+  int countTotalFollowings = 0;
+  int countTotalFollowers = 0;
 
   @override
   void initState() {
-    getCurrentUser();
+//    getCurrentUser();
+
+    // call function when build is done
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getAllPostForProfile();
+      getAllFollowers();
+      getAllFollowings();
+    });
     super.initState();
   }
 
-  void getCurrentUser() async {
-    try {
-      await FirebaseAuth.instance.currentUser().then((FirebaseUser user) {
-        if (mounted) {
-          setState(() {
-            currentUserUid = user.uid;
-            print('one before');
-          });
-        }
-      });
-      print('two');
-//      await AuthService().getLoggedInUserDetails().then((user) {
-//        print('name: ${user.userName}');
-//      });
-//      print('end');
-      getAllPostForProfile();
-    } catch (e) {
-      print(e.message);
-      Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
+  void getAllFollowers() async {
+    countTotalFollowers = await ProfileMethods()
+        .getUsersFollowersCount(userProfileUid: currentUserUid);
+    print('followers: $countTotalFollowers');
+    setState(() {});
+  }
+
+  void getAllFollowings() async {
+    countTotalFollowings = await ProfileMethods()
+        .getUserFollowingsCount(userProfileUid: currentUserUid);
+    print('followings: $countTotalFollowings');
+    if (mounted) {
+      setState(() {});
     }
   }
+
+//  void getCurrentUser() async {
+//    try {
+//      await FirebaseAuth.instance.currentUser().then((FirebaseUser user) {
+//        if (mounted) {
+//          setState(() {
+//            currentUserUid = user.uid;
+//            print('one before');
+//          });
+//        }
+//      });
+//      print('two');
+////      await AuthService().getLoggedInUserDetails().then((user) {
+////        print('name: ${user.userName}');
+////      });
+////      print('end');
+//
+//    } catch (e) {
+//      print(e.message);
+//      Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
+//    }
+//  }
 
   Future getImage({@required String photoUrl}) async {
     setState(() {
@@ -103,17 +129,23 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
           loading = true;
         });
       }
-      QuerySnapshot querySnapshot = await DatabaseService()
-          .postCollection
-          .document(currentUserUid)
-          .collection('userPost')
-          .orderBy('timeCreated', descending: true)
-          .getDocuments();
+
+//      QuerySnapshot querySnapshot = await DatabaseService().
+
+//      QuerySnapshot querySnapshot = await DatabaseService()
+//          .postCollection
+//          .document(currentUserUid)
+//          .collection('userPost')
+//          .orderBy('timeCreated', descending: true)
+//          .getDocuments();
+
+      QuerySnapshot querySnapshot =
+          await ProfileMethods().getUserPost(userUid: currentUserUid);
 
       if (mounted) {
         setState(() {
           loading = false;
-          countPost = querySnapshot.documents.length;
+//          countPost = querySnapshot.documents.length;
           postList = querySnapshot.documents
               .map((documentSnapshot) =>
                   PostWidgets.fromDocument(documentSnapshot))
@@ -242,7 +274,8 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
 
   Widget createProfileTopView(BuildContext buildContext) {
     return FutureBuilder(
-      future: DatabaseService().userCollection.document(currentUserUid).get(),
+      future:
+          DatabaseService().publicUserCollection.document(currentUserUid).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return SafeArea(
@@ -267,9 +300,16 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              createColumn(title: 'posts', count: countPost),
-                              createColumn(title: 'followers', count: 5),
-                              createColumn(title: 'following', count: 0),
+                              createColumn(
+                                title: 'posts',
+                                count: snapshot.data['postCount'],
+                              ),
+                              createColumn(
+                                  title: 'followers',
+                                  count: countTotalFollowers),
+                              createColumn(
+                                  title: 'following',
+                                  count: countTotalFollowings),
                             ],
                           ),
                           Row(
@@ -355,6 +395,10 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
   @override
   Widget build(BuildContext context) {
     print('uid: $currentUserUid');
+    final user = Provider.of<User>(context);
+    setState(() {
+      currentUserUid = user.uid;
+    });
     return isLoadingPic == true
         ? Container(
             color: Colors.black,
@@ -382,31 +426,33 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
             ),
           )
         : Scaffold(
-            body: ListView(
-              children: <Widget>[
-                currentUserUid == null
-                    ? Container(
-                        child: Center(
-                          child: Text('Loading....'),
-                        ),
-                      )
-                    : createProfileTopView(context),
-                Divider(
-                  thickness: 2,
-                  color: Colors.black,
-                ),
-                displayPost(),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  height: 100,
+            body: Container(
+              child: ListView(
+                children: <Widget>[
+                  currentUserUid == null
+                      ? Container(
+                          child: Center(
+                            child: Text('Loading....'),
+                          ),
+                        )
+                      : createProfileTopView(context),
+                  Divider(
+                    thickness: 2,
+                    color: Colors.black,
+                  ),
+                  Container(child: displayPost()),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    height: 100,
 //            width: 70,
 //            child: Center(
 //              child: CircularProgressIndicator(
 //                backgroundColor: Colors.grey,
 //              ),
 //            ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           );
   }
@@ -422,91 +468,94 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
       ],
     );
   }
-
-//  Widget myStream(context){
-//    final user = Provider.of(context);
-//    StreamBuilder<UserDataModel>(
-//        stream: DatabaseService(uid: user.uid).userInfoInStreams,
-//        builder: (context, snapshot) {
-//          print(user.uid.toString());
-//          print(snapshot.data);
-//          if (snapshot.hasData) {
-//            UserDataModel userDataModel = snapshot.data;
-//            photoUrl = userDataModel.displayPicUrl;
-//            return Scaffold(
-//              body: Container(
-//                width: double.infinity,
-//                decoration: BoxDecoration(
-//                    gradient: LinearGradient(
-//                        begin: Alignment.topCenter,
-//                        colors: [
-//                          Colors.teal[800],
-//                          Colors.teal[700],
-//                          Colors.teal[300]
-//                        ])),
-//                child: Column(
-//                  crossAxisAlignment: CrossAxisAlignment.start,
-//                  children: <Widget>[
-//                    SizedBox(
-//                      height: 40,
-//                    ),
-//                    Padding(
-//                      padding: EdgeInsets.all(20),
-//                      child: Column(
-//                        crossAxisAlignment: CrossAxisAlignment.center,
-//                        mainAxisAlignment: MainAxisAlignment.center,
-//                        children: <Widget>[
-//                          Center(
-//                            child: Text(
-//                              "User Information",
-//                              style:
-//                              TextStyle(color: Colors.white, fontSize: 40),
-//                            ),
-//                          ),
-//                        ],
-//                      ),
-//                    ),
-//                    SizedBox(height: 20),
-//                    Expanded(
-//                      child: Container(
-//                        decoration: BoxDecoration(
-//                          color: Colors.white,
-//                          borderRadius: BorderRadius.only(
-//                              topLeft: Radius.circular(40),
-//                              topRight: Radius.circular(40)),
-//                        ),
-//                        child: Container(
-//                          width: MediaQuery.of(context).size.width,
-//                          margin: EdgeInsets.all(20),
-//                          child: Column(
-//                            children: <Widget>[
-//                              showDisplayPic(userDataModel.displayPicUrl),
-//                              SizedBox(height: 20),
-//                              Text('Full Name: ${userDataModel.fullName}'),
-//                              Text('User Name: ${userDataModel.userName}'),
-//                              Text('Email: ${userDataModel.email}'),
-//                              FlatButton(
-//                                color: Colors.green,
-//                                onPressed: () {
-//                                  Navigator.of(context).push(MaterialPageRoute(
-//                                      builder: (context) => EditUserNamePage(
-//                                        userName: userDataModel.userName,
-//                                      )));
-//                                },
-//                                child: Text('Edit Username'),
-//                              ),
-//                            ],
-//                          ),
-//                        ),
-//                      ),
-//                    )
-//                  ],
-//                ),
-//              ),
-//            );
-//          } else {
-//            return LoadingWidget();
-//          }
-//        });
-//  }
 }
+
+//Future<QuerySnapshot> fetchPosts({String userUid}) => DatabaseService()
+//    .postCollection
+//    .document(userUid)
+//    .collection('userPost')
+//    .orderBy('timeCreated', descending: true)
+//    .getDocuments();
+//
+//Future getPostByUid({String postId}) async {
+//  try {
+//    DocumentSnapshot documentSnapshot = await DatabaseService()
+//        .exploreCollection
+//        .document('posts')
+//        .collection('allPosts')
+//        .document(postId)
+//        .get();
+//    return documentSnapshot;
+//  } catch (e) {
+//    Fluttertoast.showToast(msg: e.message, toastLength: Toast.LENGTH_LONG);
+//    print(e.toString());
+//  }
+//}
+
+//class PostList extends StatelessWidget {
+//  @override
+//  Widget build(BuildContext context) {
+//    final user = Provider.of(context);
+//    return Container(
+//      child: FutureBuilder(
+//        future: fetchPosts(userUid: user.uid),
+//        builder: (context, snapshot) {
+//          if (snapshot.hasData) {
+//            var docLis = snapshot.data.documents;
+//
+//            if (docLis.isEmpty) {
+//              return Container(child: Center(child: Text('empty')));
+//            } else {
+//              return Container(
+//                child: ListView.builder(
+//                  shrinkWrap: true,
+//                  physics: NeverScrollableScrollPhysics(),
+//                  padding: EdgeInsets.all(10),
+//                  itemCount: docLis.length,
+//                  itemBuilder: (context, index) {
+//                    UserPostModel userPostDetails =
+//                        UserPostModel.fromMap(docLis[index].data);
+//                    return Container(
+//                      width: double.infinity,
+//                      child: PostView(userPost: userPostDetails),
+//                    );
+//                  },
+//                ),
+//              );
+//            }
+//          } else {
+//            return Container();
+//          }
+//        },
+//      ),
+//    );
+//  }
+//}
+
+//class PostView extends StatelessWidget {
+//  final UserPostModel userPost;
+//
+//  PostView({@required this.userPost});
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return FutureBuilder(
+//      future: getPostByUid(postId: userPost.postId),
+//      builder: (context, snapshot) {
+//        if (snapshot.hasData) {
+//          PostWidgets post = PostWidgets.fromDocument(snapshot.data);
+////          PostWidgets userPostDetails = snapshot.data;
+//
+//          return Container(
+//            width: double.infinity,
+//            child: post,
+//          );
+//        } else {
+//          return Center(
+//            child: CircularProgressIndicator(),
+//          );
+//        }
+//      },
+//    );
+//  }
+//}

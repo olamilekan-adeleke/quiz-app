@@ -1,30 +1,35 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:my_app_2_2/Chat/chatScreen.dart';
-import 'package:my_app_2_2/Chat/chatWidgets/ChatCustomTile.dart';
 import 'package:my_app_2_2/Chat/chatWidgets/LastMessageBetween.dart';
-import 'package:my_app_2_2/Chat/chatWidgets/cachedImage.dart';
-import 'package:my_app_2_2/Chat/chatWidgets/onlineIndicator.dart';
 import 'package:my_app_2_2/Models/UserDetailsModel.dart';
-import 'package:my_app_2_2/Models/contactModel.dart';
+import 'package:my_app_2_2/Models/user.dart';
 import 'package:my_app_2_2/services/Auth.dart';
 import 'package:my_app_2_2/services/chatsMethods.dart';
+import 'package:my_app_2_2/services/newChatMethods.dart';
 import 'package:provider/provider.dart';
 
 class ChatContactView extends StatelessWidget {
-  final ContactModel contact;
+  final String currentUserUid;
+  final String currentUserChatDocId;
   final AuthService auth = AuthService();
 
-  ChatContactView({@required this.contact});
+  ChatContactView({
+    @required this.currentUserUid,
+    @required this.currentUserChatDocId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: auth.getUserDetailByUid(uid: contact.uid),
+      future: auth.getUserDetailByUid(uid: currentUserUid),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           UserDataModel userDataModel = snapshot.data;
 
-          return ViewLayout(contact: userDataModel);
+          return ViewLayout(
+            contact: userDataModel,
+            chatDocId: currentUserChatDocId,
+          );
         } else {
           return Center(
             child: CircularProgressIndicator(),
@@ -37,44 +42,66 @@ class ChatContactView extends StatelessWidget {
 
 class ViewLayout extends StatelessWidget {
   final UserDataModel contact;
+  final String chatDocId;
   final ChatMethods chatMethods = ChatMethods();
 
-  ViewLayout({@required this.contact});
+  ViewLayout({@required this.contact, @required this.chatDocId});
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of(context);
-    return CustomTile(
-      mini: false,
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(receiver: contact),
-          ),
-        );
-      },
-      title: Text(
-        contact.userName,
-        style: TextStyle(fontSize: 19),
-      ),
-      subtitle: LastMessageBetween(
-        stream: chatMethods.fetchLastMessageBetweenTwoUsers(
-            senderUid: user.uid, receiverUid: contact.uid),
-      ),
-      leading: Container(
-        child: Stack(
-          children: <Widget>[
-            CachedImage(
-              contact.displayPicUrl,
-              radius: 80,
-              isRound: true,
-            ),
-            OnlineDotIndicator(
-              uid: contact.uid,
-            ),
-          ],
-        ),
-      ),
+    final user = Provider.of<User>(context);
+    return LastMessageBetweenDetails(
+      stream: NewChatMethods()
+          .fetchLastMessageBetweenTwoUsers(chatDocId: chatDocId),
+      contact: contact,
+      chatDocId: chatDocId,
     );
+
+//    return CustomTile(
+////      mini: false,
+//      onTap: () {
+//        Navigator.of(context).push(
+//          MaterialPageRoute(
+//            builder: (context) => ChatScreen(
+//              receiver: contact,
+//              chatDocId: chatDocId,
+//            ),
+//          ),
+//        );
+//      },
+//      title: Text(
+//        contact.userName,
+//        style: TextStyle(fontSize: 19),
+//      ),
+////      subtitle: Text('subTitle'),
+//      subtitle: LastMessageBetweenDetails(
+//        stream: NewChatMethods().fetchLastMessageBetweenTwoUsers(chatDocId: chatDocId),
+//      ),
+//      leading: Container(
+//        child: Stack(
+//          children: <Widget>[
+//            contact.displayPicUrl == null
+//                ? CircleAvatar(
+//                    radius: 35,
+//                    backgroundImage: AssetImage('assets/profilePic_1.png'),
+//                  )
+//                : CachedImage(
+//                    contact.displayPicUrl,
+//                    radius: 60,
+//                    isRound: true,
+//                  ),
+//            OnlineDotIndicator(
+//              uid: contact.uid,
+//            ),
+//          ],
+//        ),
+//      ),
+////      trailing: Column(
+////        children: <Widget>[
+////          Text(
+////          )
+////        ],
+////      ),
+//    );
   }
 }
