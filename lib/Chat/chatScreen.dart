@@ -376,7 +376,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final key = message.timestamp.toString();
     final value = true;
-    chatCheckBox.put('init', 'yes');
+    dowchatCheckBox.put('init', 'yes');
     chatCheckBox.put(key, value.toString()).then((_) => print('saved to box'));
 
     try {

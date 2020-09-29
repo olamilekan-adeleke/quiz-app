@@ -142,11 +142,12 @@ class _SearchPageState extends State<SearchPage> {
       itemCount: suggestionList.length,
       itemBuilder: ((context, index) {
         UserDataModel searchUser = UserDataModel(
-            uid: suggestionList[index].uid,
-            fullName: suggestionList[index].fullName,
-            email: suggestionList[index].email,
-            userName: suggestionList[index].userName,
-            displayPicUrl: suggestionList[index].displayPicUrl);
+          uid: suggestionList[index].uid,
+          fullName: suggestionList[index].fullName,
+          email: suggestionList[index].email,
+          userName: suggestionList[index].userName,
+          displayPicUrl: suggestionList[index].displayPicUrl,
+        );
 
         return ListTile(
           leading: CircleAvatar(

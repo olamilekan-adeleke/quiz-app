@@ -19,6 +19,7 @@ class UploadNewPostPage extends StatefulWidget {
 class _UploadNewPostPageState extends State<UploadNewPostPage> {
   File file;
   String currentUserName;
+  String currentUserNameDisplayPicUrl;
   String currentUserUid;
   final formKey = GlobalKey<FormState>();
   String description;
@@ -52,6 +53,7 @@ class _UploadNewPostPageState extends State<UploadNewPostPage> {
           if (mounted) {
             setState(() {
               currentUserName = doc['userName'];
+              currentUserNameDisplayPicUrl = doc['displayPicUrl'];
             });
           }
           print(currentUserName);
@@ -135,6 +137,7 @@ class _UploadNewPostPageState extends State<UploadNewPostPage> {
             userName: currentUserName,
             ownerUid: currentUserUid,
             postId: postId,
+            userNameDisplayPicUrl: currentUserNameDisplayPicUrl,
             description: description,
           );
 

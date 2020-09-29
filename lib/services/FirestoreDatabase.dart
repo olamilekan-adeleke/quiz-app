@@ -152,6 +152,7 @@ class DatabaseService {
       {String imageUrl,
       String description,
       String userName,
+      String userNameDisplayPicUrl,
       String ownerUid,
       String postId}) async {
     var db = Firestore.instance;
@@ -190,6 +191,8 @@ class DatabaseService {
       {
         'postId': postId,
         'ownerId': ownerUid,
+        'userName': userName,
+        'userNameDisplayPicUrl': userNameDisplayPicUrl,
         'timeCreated': Timestamp.now(),
         'likes': {},
         'userName': userName,

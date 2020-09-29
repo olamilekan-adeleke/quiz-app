@@ -1,3 +1,4 @@
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:my_app_2_2/Others/About.dart';
 import 'package:my_app_2_2/Others/selectQuizType.dart';
@@ -6,8 +7,9 @@ import 'package:my_app_2_2/constants/loadingWidget.dart';
 import 'package:my_app_2_2/download/DownloadPage.dart';
 import 'package:my_app_2_2/loginAndRegisteration/loginPage.dart';
 import 'package:my_app_2_2/services/Auth.dart';
+import 'package:my_app_2_2/services/admobmethods.dart';
 
-//const String testDevice = 'Mobile_id';
+const String testDevice = 'Mobile_id';
 
 class QuizHomPage extends StatefulWidget {
   @override
@@ -20,26 +22,28 @@ class _QuizHomPageState extends State<QuizHomPage> {
   final String name = 'Olamilekan Yusuf';
   final String email = 'Olamilekanly66@gmail.com';
 
-//  final AdMobMethods adMobMethod = AdMobMethods();
+  final AdMobMethods adMobMethod = AdMobMethods();
 
-//  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-//    testDevices: testDevice != null ? <String>[testDevice] : null,
-//    nonPersonalizedAds: true,
-//    keywords: <String>['Game',],
-//  );
+  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    testDevices: testDevice != null ? <String>[testDevice] : null,
+    nonPersonalizedAds: true,
+    keywords: <String>[
+      'Game',
+    ],
+  );
 
-//  BannerAd bannerAd;
-//
-//  BannerAd createBannerAd() {
-//    return BannerAd(
-//      adUnitId: BannerAd.testAdUnitId,
-//      size: AdSize.banner,
-//      targetingInfo: targetingInfo,
-//      listener: (MobileAdEvent event) {
-//        print('bannerAd: $event');
-//      },
-//    );
-//  }
+  BannerAd bannerAd;
+
+  BannerAd createBannerAd() {
+    return BannerAd(
+      adUnitId: BannerAd.testAdUnitId,
+      size: AdSize.banner,
+      targetingInfo: targetingInfo,
+      listener: (MobileAdEvent event) {
+        print('bannerAd: $event');
+      },
+    );
+  }
 
   Widget startQuizButton() {
     return Padding(
@@ -75,8 +79,8 @@ class _QuizHomPageState extends State<QuizHomPage> {
         SizedBox(
           height: 20,
         ),
-//        Container(
-//          decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+        Container(
+          decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
 //          child: AdmobBanner(
 //            adUnitId: adMobMethod.getBannerAdId(),
 //            adSize: AdmobBannerSize.FULL_BANNER,
@@ -85,7 +89,7 @@ class _QuizHomPageState extends State<QuizHomPage> {
 //              print('ads says:  $map');
 //            },
 //          ),
-//        ),
+        ),
         Expanded(
           flex: 8,
           child: Container(
@@ -118,12 +122,18 @@ class _QuizHomPageState extends State<QuizHomPage> {
 
   @override
   void initState() {
-//    Admob.initialize(adMobMethod.getAdMobAppId());
-    super.initState();
+    bannerAd = createBannerAd()..load();
+
+    WidgetsFlutterBinding.ensureInitialized().addPersistentFrameCallback((_) {
+      bannerAd..show();
+//      Admob.initialize(adMobMethod.getAdMobAppId());
+    });
+//    super.initState();
   }
 
   @override
   void dispose() {
+    bannerAd.dispose();
     super.dispose();
   }
 

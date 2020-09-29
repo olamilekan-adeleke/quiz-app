@@ -17,9 +17,14 @@ class PostWidgets extends StatefulWidget {
   final dynamic timeCreated;
   final dynamic likes;
   final String userName;
+  final String userNameDisplayPicUrl;
   final String description;
   final String imageUrl;
   final int commentCount;
+
+  final int level;
+  final String courseType;
+  final String topicType;
 
   PostWidgets({
     this.postId,
@@ -27,9 +32,13 @@ class PostWidgets extends StatefulWidget {
     this.timeCreated,
     this.likes,
     this.userName,
+    this.userNameDisplayPicUrl,
     this.description,
     this.imageUrl,
     this.commentCount,
+    this.level,
+    this.courseType,
+    this.topicType,
   });
 
   factory PostWidgets.fromDocument(DocumentSnapshot documentSnapshot) {
@@ -39,9 +48,13 @@ class PostWidgets extends StatefulWidget {
       timeCreated: documentSnapshot['timeCreated'],
       likes: documentSnapshot['likes'],
       userName: documentSnapshot['userName'],
+      userNameDisplayPicUrl: documentSnapshot['userNameDisplayPicUrl'],
       description: documentSnapshot['description'],
       imageUrl: documentSnapshot['imageUrl'],
       commentCount: documentSnapshot['commentCount'],
+      level: documentSnapshot['level'],
+      courseType: documentSnapshot['courseType'],
+      topicType: documentSnapshot['topicType'],
     );
   }
 
@@ -476,7 +489,7 @@ class _PostWidgetsState extends State<PostWidgets> {
                       margin:
                           EdgeInsets.only(bottom: 2.0, left: 5.0, right: 5.0),
                       width: double.infinity,
-                      height: 380.0,
+                      height: 390.0,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25.0),
                       ),
@@ -485,8 +498,7 @@ class _PostWidgetsState extends State<PostWidgets> {
                               imageUrl,
                               width: MediaQuery.of(context).size.width,
                               height: MediaQuery.of(context).size.height * .65,
-//                              fit: BoxFit.cover,
-//                              fit: BoxFit.none,
+                              fit: BoxFit.cover,
                               handleLoadingProgress: true,
                               shape: BoxShape.rectangle,
                               borderRadius:

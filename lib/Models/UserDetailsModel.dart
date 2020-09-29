@@ -10,16 +10,16 @@ class UserDataModel {
   int state;
   int postCount;
 
-  UserDataModel(
-      {this.uid,
-      this.fullName,
-      this.userName,
-      this.email,
-      this.displayPicUrl,
-      this.state,
-      this.status,
-        this.postCount,
-      });
+  UserDataModel({
+    this.uid,
+    this.fullName,
+    this.userName,
+    this.email,
+    this.displayPicUrl,
+    this.state,
+    this.status,
+    this.postCount,
+  });
 
   UserDataModel.fromMap(Map<dynamic, dynamic> mapData) {
     this.uid = mapData['uid'];
